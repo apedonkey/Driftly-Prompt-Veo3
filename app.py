@@ -4,7 +4,7 @@ Video Automation Web UI
 User-friendly interface for AI video generation
 """
 
-from flask import Flask, render_template, request, jsonify, send_file, session
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -52,6 +52,9 @@ def allowed_file(filename):
 
 # Store job status
 job_status = {}
+
+# Track server start time
+app.start_time = datetime.now().isoformat()
 
 # Setup authentication routes
 setup_auth_routes(app)
@@ -144,6 +147,13 @@ def run_video_generation(job_id, topic, api_keys_from_session, image_paths=None,
             'error': str(e)
         }
 
+@app.before_request
+def force_https():
+    """Force HTTPS in production"""
+    if os.environ.get('FLASK_ENV') == 'production':
+        if request.headers.get('X-Forwarded-Proto', 'http') != 'https':
+            return redirect(request.url.replace('http://', 'https://'), code=301)
+
 @app.after_request
 def set_security_headers(response):
     """Set security headers on all responses"""
@@ -158,6 +168,15 @@ def set_security_headers(response):
 @app.route('/')
 def index():
     """Main page"""
+    # Simple visitor counter
+    visit_count = session.get('visit_counted', False)
+    if not visit_count:
+        session['visit_counted'] = True
+        # Increment counter (stored in app context for simplicity)
+        if not hasattr(app, 'visitor_count'):
+            app.visitor_count = 0
+        app.visitor_count += 1
+    
     return render_template('index.html')
 
 @app.route('/health')
@@ -610,6 +629,14 @@ def get_random_idea():
         return jsonify({'success': False, 'error': str(e)})
 
 
+@app.route('/admin/visitors')
+def admin_visitors():
+    """Simple visitor count endpoint"""
+    return jsonify({
+        'unique_visitors': getattr(app, 'visitor_count', 0),
+        'server_start': getattr(app, 'start_time', 'Unknown')
+    })
+
 @app.route('/api/stats')
 def get_stats():
     """Get video statistics"""
@@ -627,7 +654,8 @@ def get_stats():
             'success': True,
             'total': len(videos),
             'today': today_count,
-            'views': 0  # Would need YouTube API to get real views
+            'views': 0,  # Would need YouTube API to get real views
+            'visitors': getattr(app, 'visitor_count', 0)  # Total unique visitors
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -771,5 +799,6 @@ def clear_cancelled_videos():
 if __name__ == '__main__':
     # Use debug mode only in development
     debug_mode = os.environ.get('FLASK_ENV', 'development') == 'development'
+    # Railway provides PORT as environment variable
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=debug_mode, host='0.0.0.0', port=port)
