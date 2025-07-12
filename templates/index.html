@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driftly AI Video Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark glass-effect">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1 glow-text">
+                <i class="bi bi-stars"></i> Driftly AI Video Studio
+            </span>
+            <div>
+                <button class="btn btn-outline-light btn-sm me-2" onclick="showSetup()">
+                    <i class="bi bi-gear"></i> Setup
+                </button>
+                <button class="btn btn-outline-light btn-sm" onclick="showInstructions()">
+                    <i class="bi bi-question-circle"></i> Help
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- First Time Setup Modal -->
+        <div id="firstTimeSetup" class="modal-overlay" style="display: none;">
+            <div class="setup-wizard">
+                <button type="button" class="btn-close setup-close-btn" onclick="closeSetup()" aria-label="Close"></button>
+                <h2 class="text-center mb-4 glow-text">
+                    <i class="bi bi-magic"></i> Welcome to Driftly AI Video Studio
+                </h2>
+                <p class="text-center mb-4">Let's get you set up in 2 minutes!</p>
+                
+                <div class="setup-steps">
+                    <div class="step-card glass-card">
+                        <h5><i class="bi bi-1-circle-fill text-primary"></i> API Keys</h5>
+                        <p class="small text-muted">Enter your API keys (they're saved locally)</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-key"></i> Grok API Key
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="setupGrokKey" 
+                                       placeholder="xai-...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('setupGrokKey', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                1. Go to <a href="https://console.x.ai" target="_blank">console.x.ai</a><br>
+                                2. Sign up or log in<br>
+                                3. Click "API Keys" → "Create API Key"<br>
+                                4. Copy the key (starts with <code>xai-</code>)<br>
+                                <br>
+                                <div class="alert alert-info small mt-2">
+                                    <strong>💳 Grok API Credits:</strong><br>
+                                    • Add credits: <strong>$10-25 recommended</strong><br>
+                                    • Script generation: ~$0.10 per video<br>
+                                    • This covers 100-250 video scripts<br>
+                                    • Go to billing in console.x.ai
+                                </div>
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-key-fill"></i> FAL API Key
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="setupFalKey" 
+                                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('setupFalKey', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                1. Go to <a href="https://fal.ai/dashboard" target="_blank">fal.ai/dashboard</a><br>
+                                2. Sign up for free account<br>
+                                3. Click "API Keys" in the top bar<br>
+                                4. Create new key and copy it<br>
+                                <span class="text-info">ℹ️ We're using Google Veo 3 model via FAL</span><br>
+                                <span class="text-warning">💰 Pricing: Each 8-second video costs approximately $6.40</span><br>
+                                <br>
+                                <div class="alert alert-warning small mt-2">
+                                    <strong>⚠️ Important: Add Credits to FAL.ai</strong><br>
+                                    • Go to <a href="https://fal.ai/dashboard/billing" target="_blank">fal.ai/dashboard/billing</a><br>
+                                    • Add credits: <strong>$25-50 recommended</strong> to start<br>
+                                    • This gives you ~4-8 videos to test with<br>
+                                    • Monitor usage as you go
+                                </div>
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card glass-card">
+                        <h5><i class="bi bi-2-circle-fill text-primary"></i> Google Sheets (Optional)</h5>
+                        <p class="small text-muted">For topic queue management</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-table"></i> Spreadsheet ID
+                            </label>
+                            <input type="text" class="form-control" id="setupSheetId" 
+                                   placeholder="1hADNv4Pd_Ikr2SUy8eg_GpcX1cMi_YjIdpAJzLIpeGQ">
+                            <div class="alert alert-secondary small mt-2">
+                                <strong>Option 1: Use our template (Recommended)</strong><br>
+                                1. <a href="https://docs.google.com/spreadsheets/d/1hADNv4Pd_Ikr2SUy8eg_GpcX1cMi_YjIdpAJzLIpeGQ/copy" target="_blank" class="text-warning">
+                                   Click here to copy the Video Automation template</a><br>
+                                2. It will create your own copy with the correct tabs<br>
+                                3. Look at your new sheet's URL<br>
+                                4. Copy the ID between <code>/d/</code> and <code>/edit</code><br>
+                                <br>
+                                <strong>Option 2: Create your own sheet</strong><br>
+                                1. Go to <a href="https://sheets.new" target="_blank">sheets.new</a> to create a blank sheet<br>
+                                2. Create two tabs (sheets):<br>
+                                   • <strong>Topics</strong> tab with columns: ID | Status | Topic<br>
+                                   • <strong>Published</strong> tab with columns: ID | Topic | Title | Video URL | Published Date | Views<br>
+                                3. Share the sheet with: <code>admin-507@video-465521.iam.gserviceaccount.com</code><br>
+                                4. Copy your Spreadsheet ID from the URL<br>
+                                <br>
+                                <strong>Where to find the ID:</strong><br>
+                                URL format: <code>https://docs.google.com/spreadsheets/d/<span class="text-warning">SPREADSHEET_ID</span>/edit</code><br>
+                                Example ID: <code class="text-warning">1hADNv4Pd_Ikr2SUy8eg_GpcX1cMi_YjIdpAJzLIpeGQ</code>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle"></i> Skip this if you just want to generate videos directly (videos will still work!)
+                        </div>
+                    </div>
+                    
+                    <div class="step-card glass-card">
+                        <h5><i class="bi bi-3-circle-fill text-primary"></i> YouTube (Optional)</h5>
+                        <p class="small text-muted">For automatic uploads</p>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="setupYoutube" onchange="toggleYoutubeFields()">
+                            <label class="form-check-label">
+                                Enable YouTube uploads
+                            </label>
+                        </div>
+                        
+                        <div id="youtubeFields" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-file-code"></i> YouTube Client Secrets JSON
+                                </label>
+                                <textarea class="form-control" id="youtubeClientSecrets" rows="4" 
+                                          placeholder='Paste your entire client_secrets.json content here (starts with {"installed":{"client_id":...})'></textarea>
+                                <div class="alert alert-secondary small mt-2">
+                                    <strong>How to get YouTube credentials:</strong><br>
+                                    1. Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a><br>
+                                    2. Create a new project (or select existing)<br>
+                                    3. Click <strong>"Enable APIs and Services"</strong><br>
+                                    4. Search for <strong>"YouTube Data API v3"</strong> and Enable it<br>
+                                    5. Go to <strong>"Credentials"</strong> in the left menu<br>
+                                    6. Click <strong>"+ Create Credentials"</strong> → <strong>"OAuth client ID"</strong><br>
+                                    7. If prompted, configure consent screen:<br>
+                                    &nbsp;&nbsp;&nbsp;• Choose "External"<br>
+                                    &nbsp;&nbsp;&nbsp;• Fill app name (any name)<br>
+                                    &nbsp;&nbsp;&nbsp;• Add your email<br>
+                                    &nbsp;&nbsp;&nbsp;• Save<br>
+                                    8. For Application type, choose <strong>"Desktop app"</strong><br>
+                                    9. Name it (e.g., "Video Automation")<br>
+                                    10. Click Create, then <strong>Download JSON</strong><br>
+                                    11. Open the downloaded file and <strong>copy ALL contents</strong><br>
+                                    12. Paste everything here
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info small">
+                                <i class="bi bi-info-circle"></i> <strong>First time only:</strong> A browser window will open to authorize YouTube access when you create your first video. Log in with your YouTube account.
+                            </div>
+                            
+                            <div class="alert alert-warning small">
+                                <i class="bi bi-shield-check"></i> Your credentials are stored locally on your computer only
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning small mt-2">
+                            <i class="bi bi-exclamation-triangle"></i> Leave unchecked to save videos locally only
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary btn-lg glow-button" onclick="saveSetup()">
+                        <i class="bi bi-rocket-takeoff"></i> Start Creating!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Left Panel: Create Video -->
+            <div class="col-lg-7">
+                <div class="card glass-card mb-4">
+                    <div class="card-body">
+                        <h4 class="glow-text mb-4">
+                            <i class="bi bi-camera-reels"></i> Create Video
+                        </h4>
+                        
+                        <!-- Topic Input -->
+                        <div class="create-section">
+                            <div class="mb-3">
+                                <label for="quickTopic" class="form-label">
+                                    <i class="bi bi-chat-text"></i> What should the video be about?
+                                    <a href="#" class="ms-2 text-decoration-none" onclick="getRandomIdea('quickTopic'); return false;">
+                                        <i class="bi bi-dice-3"></i> Random Idea!
+                                    </a>
+                                </label>
+                                <textarea class="form-control auto-expand" id="quickTopic" 
+                                         placeholder="Enter your topic or detailed description..."
+                                         rows="3"></textarea>
+                                <small class="text-muted">The more detail you provide, the better the video!</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="videoDuration" class="form-label">
+                                    <i class="bi bi-clock"></i> Video Duration
+                                </label>
+                                <select class="form-select" id="videoDuration">
+                                    <option value="8">8 seconds (1 segment)</option>
+                                    <option value="16">16 seconds (2 segments)</option>
+                                    <option value="24">24 seconds (3 segments)</option>
+                                    <option value="32">32 seconds (4 segments)</option>
+                                </select>
+                                <small class="text-muted">Each segment is 8 seconds. Longer videos cost more.</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="videoStyle" class="form-label">
+                                    <i class="bi bi-palette"></i> Visual Style
+                                </label>
+                                <select class="form-select" id="videoStyle">
+                                    <option value="cinematic">Cinematic (Film-like, dramatic lighting)</option>
+                                    <option value="realistic">Realistic (Natural, photorealistic)</option>
+                                    <option value="dramatic">Dramatic (High contrast, moody)</option>
+                                    <option value="vibrant">Vibrant (Colorful, energetic)</option>
+                                    <option value="tech">Tech/Futuristic (Modern, digital)</option>
+                                </select>
+                                <small class="text-muted">AI will optimize prompts for your chosen style</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="imageInput" class="form-label">
+                                    <i class="bi bi-images"></i> Reference Images (Optional)
+                                </label>
+                                <input type="file" class="form-control" id="imageInput" accept="image/*" multiple>
+                                <small class="text-muted">Upload multiple images for:</small>
+                                <ul class="small text-muted mt-1 mb-2">
+                                    <li>Character consistency across scenes</li>
+                                    <li>Style reference (artistic look)</li>
+                                    <li>First and last frame specification</li>
+                                    <li>Object/background references</li>
+                                </ul>
+                                
+                                <div class="mt-2" id="imagePreview" style="display: none;">
+                                    <label class="form-label small">Selected Images:</label>
+                                    <div class="row g-2" id="imagePreviewGrid"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button id="generateVideoBtn" class="btn btn-lg glow-button" onclick="generateVideo()">
+                                    <i class="bi bi-stars"></i> Generate Video
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress Display -->
+                        <div id="progressSection" class="progress-section" style="display: none;">
+                            <div class="progress-card">
+                                <div class="progress-animation">
+                                    <div class="pulse-loader"></div>
+                                </div>
+                                <h5 id="progressText" class="mt-3">Initializing...</h5>
+                                <div class="progress mt-3">
+                                    <div id="progressBar" class="progress-bar progress-bar-animated" 
+                                         style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Result Display -->
+                        <div id="resultSection" style="display: none;">
+                            <div class="result-card" id="resultCard">
+                                <div class="result-icon">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 id="resultTitle" class="mt-3"></h5>
+                                <p id="resultMessage"></p>
+                                <div class="mt-3">
+                                    <a id="resultLink" href="#" target="_blank" class="btn btn-success me-2" 
+                                       style="display: none;">
+                                        <i class="bi bi-youtube"></i> View on YouTube
+                                    </a>
+                                    <button class="btn btn-outline-light" onclick="resetForm()">
+                                        <i class="bi bi-arrow-repeat"></i> Create Another
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Videos -->
+                <div class="card glass-card mb-4">
+                    <div class="card-body">
+                        <h4 class="glow-text mb-4">
+                            <i class="bi bi-calendar-event"></i> Schedule Videos
+                        </h4>
+                        
+                        <div id="scheduleSection">
+                            <!-- Schedule Form -->
+                            <div class="mb-4">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar3"></i> Schedule Date
+                                        </label>
+                                        <input type="date" class="form-control" id="scheduleDate">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="bi bi-alarm"></i> Time
+                                        </label>
+                                        <input type="time" class="form-control" id="scheduleTime">
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-pencil-square"></i> Topic/Description
+                                        <a href="#" class="ms-2 text-decoration-none" onclick="getRandomIdea('scheduleTopicInput'); return false;">
+                                            <i class="bi bi-dice-3"></i> Random Idea!
+                                        </a>
+                                    </label>
+                                    <textarea class="form-control" id="scheduleTopicInput" rows="2" 
+                                             placeholder="What should this scheduled video be about?"></textarea>
+                                    <small class="text-muted">The more detail you provide, the better the video!</small>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="bi bi-clock"></i> Video Duration
+                                        </label>
+                                        <select class="form-select" id="scheduleDuration">
+                                            <option value="8">8 seconds (1 segment)</option>
+                                            <option value="16">16 seconds (2 segments)</option>
+                                            <option value="24">24 seconds (3 segments)</option>
+                                            <option value="32">32 seconds (4 segments)</option>
+                                        </select>
+                                        <small class="text-muted">Each segment is 8 seconds. Longer videos cost more.</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="bi bi-palette"></i> Visual Style
+                                        </label>
+                                        <select class="form-select" id="scheduleStyle">
+                                            <option value="cinematic">Cinematic (Film-like, dramatic lighting)</option>
+                                            <option value="realistic">Realistic (Natural, photorealistic)</option>
+                                            <option value="dramatic">Dramatic (High contrast, moody)</option>
+                                            <option value="vibrant">Vibrant (Colorful, energetic)</option>
+                                            <option value="tech">Tech/Futuristic (Modern, digital)</option>
+                                        </select>
+                                        <small class="text-muted">AI will optimize prompts for your chosen style</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <label for="scheduleImageInput" class="form-label">
+                                        <i class="bi bi-images"></i> Reference Images (Optional)
+                                    </label>
+                                    <input type="file" class="form-control" id="scheduleImageInput" accept="image/*" multiple>
+                                    <small class="text-muted">Upload multiple images for:</small>
+                                    <ul class="small text-muted mt-1 mb-2">
+                                        <li>Character consistency across scenes</li>
+                                        <li>Style reference (artistic look)</li>
+                                        <li>First and last frame specification</li>
+                                        <li>Object/background references</li>
+                                    </ul>
+                                    
+                                    <div class="mt-2" id="scheduleImagePreview" style="display: none;">
+                                        <label class="form-label small">Selected Images:</label>
+                                        <div class="row g-2" id="scheduleImagePreviewGrid"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid mt-3">
+                                    <button class="btn btn-lg glow-button" onclick="scheduleVideo()">
+                                        <i class="bi bi-clock"></i> Schedule Video
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Schedule Progress Display -->
+                            <div id="scheduleProgressSection" class="progress-section" style="display: none;">
+                                <div class="progress-card">
+                                    <div class="progress-animation">
+                                        <div class="pulse-loader"></div>
+                                    </div>
+                                    <h5 id="scheduleProgressText" class="mt-3">Generating script preview...</h5>
+                                    <div class="progress mt-3">
+                                        <div id="scheduleProgressBar" class="progress-bar progress-bar-animated" 
+                                             style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Scheduled Videos List -->
+                            <div class="mt-4">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-list-check"></i> Scheduled Videos
+                                    <div class="float-end">
+                                        <button class="btn btn-sm btn-outline-danger me-2" onclick="clearCancelledVideos()" title="Clear cancelled videos">
+                                            <i class="bi bi-trash"></i> Clear Cancelled
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light" onclick="loadScheduledVideos()">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </div>
+                                </h5>
+                                <div id="scheduledVideosList">
+                                    <div class="text-center text-muted">
+                                        <i class="bi bi-calendar-x"></i> No scheduled videos
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Panel: Stats & History -->
+            <div class="col-lg-5">
+                <!-- Stats -->
+                <div class="card glass-card mb-3">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <h3 class="glow-text" id="totalVideos">0</h3>
+                                    <small>Videos Created</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <h3 class="glow-text" id="totalViews">0</h3>
+                                    <small>Total Views</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <h3 class="glow-text" id="todayVideos">0</h3>
+                                    <small>Today</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Videos -->
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> Recent Creations
+                            <button class="btn btn-sm btn-outline-light float-end" onclick="loadRecentVideos()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </h5>
+                    </div>
+                    <div class="card-body recent-videos-container">
+                        <div id="recentVideosList">
+                            <div class="text-center text-muted">
+                                <i class="bi bi-film"></i> No videos yet
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Preview Modal -->
+    <div class="modal fade" id="promptPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content glass-card">
+                <div class="modal-header">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-eye"></i> Review & Edit Video Prompt
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> This is the prompt that will be sent to Veo 3. You can edit it to fine-tune the video generation.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Video Title:</strong></label>
+                        <input type="text" class="form-control" id="previewTitle" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Visual Prompt for Veo 3:</strong></label>
+                        <textarea class="form-control" id="previewPrompt" rows="15" 
+                                  placeholder="Edit the prompt here..." 
+                                  style="min-height: 300px; max-height: 400px; overflow-y: auto;"></textarea>
+                        <small class="text-muted">This is what Veo 3 will use to generate your video</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Camera Work:</strong></label>
+                        <textarea class="form-control" id="previewCamera" rows="3" readonly 
+                                  style="resize: vertical; background: rgba(255, 255, 255, 0.05);"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Lighting:</strong></label>
+                        <textarea class="form-control" id="previewLighting" rows="3" readonly 
+                                  style="resize: vertical; background: rgba(255, 255, 255, 0.05);"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Style Keywords:</strong></label>
+                        <input type="text" class="form-control" id="previewKeywords" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="proceedWithGeneration()">
+                        <i class="bi bi-check-circle"></i> Generate Video
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div class="modal fade" id="instructionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content glass-card">
+                <div class="modal-header">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-book"></i> How to Use Driftly AI Video Studio
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="instructions-content">
+                        <h6>🚀 Quick Start</h6>
+                        <ol>
+                            <li>Enter a topic or select a template</li>
+                            <li>Click "Generate Video"</li>
+                            <li>Wait ~1 minute for your video</li>
+                            <li>View on YouTube or download locally</li>
+                        </ol>
+                        
+                        <h6 class="mt-4">🔑 Getting API Keys</h6>
+                        <ul>
+                            <li><strong>Grok API:</strong> Sign up at <a href="https://console.x.ai" target="_blank">console.x.ai</a> → API Keys → Create API Key</li>
+                            <li><strong>FAL API:</strong> Sign up at <a href="https://fal.ai/dashboard" target="_blank">fal.ai/dashboard</a> → API Keys (free tier available)</li>
+                            <li><strong>YouTube (Optional):</strong> Follow the detailed steps in the setup wizard</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">📺 YouTube Setup Tips</h6>
+                        <ul>
+                            <li>Choose <strong>"Desktop app"</strong> as the application type (not Web application)</li>
+                            <li>The JSON file should start with <code>{"installed":{"client_id":...</code></li>
+                            <li>You'll authorize once per computer - the app remembers your login</li>
+                            <li>Make sure you have a YouTube channel created first</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">💡 Tips</h6>
+                        <ul>
+                            <li>Keep topics concise (8-second videos work best with single concepts)</li>
+                            <li>Use descriptive language for better visuals</li>
+                            <li>Try templates for inspiration</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">⚡ Costs & Credits</h6>
+                        <div class="alert alert-warning">
+                            <strong>💰 Initial Setup Costs:</strong><br>
+                            • <strong>FAL.ai:</strong> Add $25-50 (for 4-8 test videos)<br>
+                            • <strong>Grok API:</strong> Add $10-25 (for 100-250 scripts)<br>
+                            • <strong>Total to start:</strong> $35-75
+                        </div>
+                        <p><strong>Per-Video Costs:</strong><br>
+                        • <strong>Google Veo 3 via FAL:</strong> ~$0.75/second = $6 per 8-second segment<br>
+                        • <strong>Grok API:</strong> ~$0.10 per script<br>
+                        <br>
+                        <strong>Cost by duration:</strong><br>
+                        • 8 seconds (1 segment): ~$6.10<br>
+                        • 16 seconds (2 segments): ~$12.10<br>
+                        • 24 seconds (3 segments): ~$18.10<br>
+                        • 32 seconds (4 segments): ~$24.10</p>
+                        
+                        <h6 class="mt-4">🎬 About the Tech</h6>
+                        <ul>
+                            <li><strong>Grok 3:</strong> Latest AI model from X.AI for intelligent script writing</li>
+                            <li><strong>Google Veo 3:</strong> State-of-the-art video generation (via FAL platform)</li>
+                            <li><strong>Model:</strong> <code>fal-ai/veo3</code> - optimized for quality</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Success Modal -->
+    <div class="modal fade" id="scheduleSuccessModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-check-circle-fill text-success"></i> Video Scheduled Successfully!
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-calendar-check text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <p class="lead mb-3">Your video has been scheduled!</p>
+                    <p class="mb-2">The video will be created automatically at:</p>
+                    <h5 class="text-info" id="scheduledTimeDisplay">
+                        <!-- Time will be inserted here -->
+                    </h5>
+                    <p class="text-muted mt-3 small">
+                        <i class="bi bi-info-circle"></i> You'll receive the video at the scheduled time.
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Schedule Confirmation Modal -->
+    <div class="modal fade" id="cancelScheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> Cancel Scheduled Video
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-calendar-x text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <p class="lead mb-3">Are you sure you want to cancel this scheduled video?</p>
+                    <div class="alert alert-light" id="cancelVideoDetails">
+                        <!-- Video details will be inserted here -->
+                    </div>
+                    <p class="text-muted small">
+                        <i class="bi bi-info-circle"></i> This action cannot be undone.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-arrow-left"></i> Keep Scheduled
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">
+                        <i class="bi bi-x-circle"></i> Yes, Cancel It
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Cancelled Videos Confirmation Modal -->
+    <div class="modal fade" id="clearCancelledConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> Clear Cancelled Videos
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-trash3 text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    <p class="lead mb-3">This will permanently remove all cancelled videos from the schedule.</p>
+                    <p class="text-muted">
+                        <i class="bi bi-info-circle"></i> Continue?
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmClearCancelled()">
+                        <i class="bi bi-trash3"></i> Yes, Clear Them
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Cancelled Videos Success Modal -->
+    <div class="modal fade" id="clearCancelledModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-check-circle-fill text-success"></i> Videos Cleared Successfully
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-trash3 text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <p class="lead mb-3" id="clearCancelledMessage">
+                        <!-- Message will be inserted here -->
+                    </p>
+                    <p class="text-muted small">
+                        <i class="bi bi-info-circle"></i> Your schedule is now clean and organized.
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/security.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

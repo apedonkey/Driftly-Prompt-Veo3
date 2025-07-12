@@ -1,0 +1,38 @@
+# Files and directories that should NEVER be cleaned up
+
+# Configuration files
+.env
+.env.example
+config/
+*.json
+
+# Source code
+*.py
+!test_*.py
+!check_secrets.py
+!clean_logs.py
+
+# Documentation
+*.md
+*.txt
+LICENSE
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Important directories
+static/
+templates/
+
+# Security files
+secure_logger.py
+config_validator.py
+auth.py
+SECURITY_CHECKLIST.md
+
+# Dependencies
+requirements.txt
+package.json
+package-lock.json
