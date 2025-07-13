@@ -19,6 +19,13 @@ let progressTimeouts = [];
 
 // Check for first time setup
 document.addEventListener('DOMContentLoaded', function() {
+    // Verify Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded!');
+    } else {
+        console.log('Bootstrap version:', bootstrap.Modal.VERSION);
+    }
+    
     checkFirstTimeSetup();
     loadStats();
     setupAutoExpand();
@@ -303,6 +310,76 @@ function trackSetupChanges() {
     setupHasUnsavedChanges = true;
 }
 
+// Helper function to safely show a modal
+function showModal(modalId) {
+    try {
+        const modalElement = document.getElementById(modalId);
+        if (!modalElement) {
+            console.error(`Modal ${modalId} not found`);
+            return false;
+        }
+        
+        // Try Bootstrap modal first
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            return true;
+        } else {
+            // Fallback: manually show modal
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            modalElement.setAttribute('aria-modal', 'true');
+            modalElement.removeAttribute('aria-hidden');
+            
+            // Add backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = `${modalId}-backdrop`;
+            document.body.appendChild(backdrop);
+            
+            // Add modal-open class to body
+            document.body.classList.add('modal-open');
+            return true;
+        }
+    } catch (error) {
+        console.error(`Error showing modal ${modalId}:`, error);
+        return false;
+    }
+}
+
+// Helper function to hide a modal
+function hideModal(modalId) {
+    try {
+        const modalElement = document.getElementById(modalId);
+        if (!modalElement) return;
+        
+        // Try Bootstrap modal first
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        } else {
+            // Fallback: manually hide modal
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+            modalElement.removeAttribute('aria-modal');
+            
+            // Remove backdrop
+            const backdrop = document.getElementById(`${modalId}-backdrop`);
+            if (backdrop) {
+                backdrop.remove();
+            }
+            
+            // Remove modal-open class from body
+            document.body.classList.remove('modal-open');
+        }
+    } catch (error) {
+        console.error(`Error hiding modal ${modalId}:`, error);
+    }
+}
+
 function closeSetup() {
     // Check if there are unsaved changes
     const currentGrokKey = document.getElementById('setupGrokKey').value;
@@ -316,8 +393,13 @@ function closeSetup() {
     
     if (hasUnsavedKeys) {
         // Show unsaved changes modal
-        const unsavedModal = new bootstrap.Modal(document.getElementById('unsavedSetupModal'));
-        unsavedModal.show();
+        if (!showModal('unsavedSetupModal')) {
+            // Fallback to confirm dialog if modal fails
+            if (confirm('You haven\'t saved your API keys yet. Are you sure you want to close?')) {
+                document.getElementById('firstTimeSetup').style.display = 'none';
+                setupHasUnsavedChanges = false;
+            }
+        }
     } else {
         document.getElementById('firstTimeSetup').style.display = 'none';
         setupHasUnsavedChanges = false;
@@ -326,14 +408,12 @@ function closeSetup() {
 
 function continueSetup() {
     // Close the unsaved modal and keep setup open
-    const unsavedModal = bootstrap.Modal.getInstance(document.getElementById('unsavedSetupModal'));
-    unsavedModal.hide();
+    hideModal('unsavedSetupModal');
 }
 
 function confirmCloseSetup() {
-    // Close both modals
-    const unsavedModal = bootstrap.Modal.getInstance(document.getElementById('unsavedSetupModal'));
-    unsavedModal.hide();
+    // Close the modal and the setup
+    hideModal('unsavedSetupModal');
     document.getElementById('firstTimeSetup').style.display = 'none';
     setupHasUnsavedChanges = false;
 }
@@ -421,8 +501,11 @@ async function generateVideo() {
     
     if (!grokKey || !falKey) {
         // Show missing API keys modal
-        const missingKeysModal = new bootstrap.Modal(document.getElementById('missingApiKeysModal'));
-        missingKeysModal.show();
+        if (!showModal('missingApiKeysModal')) {
+            // Fallback to alert if modal fails
+            alert('Please enter both API keys before creating videos.');
+            showSetup();
+        }
         return;
     }
     
