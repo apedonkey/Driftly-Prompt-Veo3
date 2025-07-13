@@ -59,7 +59,7 @@
                             </label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="setupGrokKey" 
-                                       placeholder="xai-...">
+                                       placeholder="xai-..." onchange="trackSetupChanges()" oninput="trackSetupChanges()">
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('setupGrokKey', this)">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -86,7 +86,7 @@
                             </label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="setupFalKey" 
-                                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:...">
+                                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:..." onchange="trackSetupChanges()" oninput="trackSetupChanges()">
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('setupFalKey', this)">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -750,6 +750,54 @@
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
                         <i class="bi bi-check"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Missing API Keys Modal -->
+    <div class="modal fade" id="missingApiKeysModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> API Keys Required
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Please enter both API keys before creating videos.</p>
+                    <p class="text-muted small mt-2">You need to complete the setup process first.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showSetupModal()">
+                        <i class="bi bi-gear"></i> Go to Setup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsaved Setup Confirmation Modal -->
+    <div class="modal fade" id="unsavedSetupModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title glow-text">
+                        <i class="bi bi-exclamation-circle text-warning"></i> Unsaved Changes
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">You haven't saved your API keys yet. Are you sure you want to close?</p>
+                    <p class="text-muted small mt-2">Your API keys will be lost if you close without saving.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" onclick="continueSetup()">
+                        <i class="bi bi-arrow-left"></i> Continue Setup
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmCloseSetup()">
+                        <i class="bi bi-x-circle"></i> Close Anyway
                     </button>
                 </div>
             </div>

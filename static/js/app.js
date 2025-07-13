@@ -264,6 +264,9 @@ function saveSetup() {
         }
     }
     
+    // Reset unsaved changes flag
+    setupHasUnsavedChanges = false;
+    
     // Hide setup
     document.getElementById('firstTimeSetup').style.display = 'none';
     
@@ -288,17 +291,51 @@ function showSetup() {
     }
 }
 
+function showSetupModal() {
+    // This is called from the missing API keys modal
+    showSetup();
+}
+
+// Track if setup form has unsaved changes
+let setupHasUnsavedChanges = false;
+
+function trackSetupChanges() {
+    setupHasUnsavedChanges = true;
+}
+
 function closeSetup() {
-    // Only close if user has API keys saved
-    const hasKeys = localStorage.getItem('grokApiKey') && localStorage.getItem('falApiKey');
+    // Check if there are unsaved changes
+    const currentGrokKey = document.getElementById('setupGrokKey').value;
+    const currentFalKey = document.getElementById('setupFalKey').value;
+    const savedGrokKey = localStorage.getItem('grokApiKey') || '';
+    const savedFalKey = localStorage.getItem('falApiKey') || '';
     
-    if (hasKeys) {
-        document.getElementById('firstTimeSetup').style.display = 'none';
+    // Check if user has entered new values that haven't been saved
+    const hasUnsavedKeys = (currentGrokKey && currentGrokKey !== savedGrokKey) || 
+                          (currentFalKey && currentFalKey !== savedFalKey);
+    
+    if (hasUnsavedKeys) {
+        // Show unsaved changes modal
+        const unsavedModal = new bootstrap.Modal(document.getElementById('unsavedSetupModal'));
+        unsavedModal.show();
     } else {
-        if (confirm('You haven\'t saved your API keys yet. Are you sure you want to close?')) {
-            document.getElementById('firstTimeSetup').style.display = 'none';
-        }
+        document.getElementById('firstTimeSetup').style.display = 'none';
+        setupHasUnsavedChanges = false;
     }
+}
+
+function continueSetup() {
+    // Close the unsaved modal and keep setup open
+    const unsavedModal = bootstrap.Modal.getInstance(document.getElementById('unsavedSetupModal'));
+    unsavedModal.hide();
+}
+
+function confirmCloseSetup() {
+    // Close both modals
+    const unsavedModal = bootstrap.Modal.getInstance(document.getElementById('unsavedSetupModal'));
+    unsavedModal.hide();
+    document.getElementById('firstTimeSetup').style.display = 'none';
+    setupHasUnsavedChanges = false;
 }
 
 function showInstructions() {
@@ -383,7 +420,9 @@ async function generateVideo() {
     const falKey = localStorage.getItem('falApiKey');
     
     if (!grokKey || !falKey) {
-        showSetup();
+        // Show missing API keys modal
+        const missingKeysModal = new bootstrap.Modal(document.getElementById('missingApiKeysModal'));
+        missingKeysModal.show();
         return;
     }
     
