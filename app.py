@@ -69,8 +69,8 @@ def run_video_generation(job_id, topic, api_keys_from_session, image_paths=None,
             'error': None
         }
         
-        # Create automation instance with custom API keys
-        automation = VideoAutomation()
+        # Create automation instance with custom API keys, skip external setup
+        automation = VideoAutomation(skip_external_setup=True)
         # Ensure API key has proper prefix
         grok_key = api_keys_from_session['grokApiKey']
         if not grok_key.startswith('xai-'):
@@ -230,7 +230,7 @@ def clear_session():
 def get_topics():
     """Get topics from Google Sheets"""
     try:
-        automation = VideoAutomation()
+        automation = VideoAutomation(skip_external_setup=False)  # Keep Sheets setup for this endpoint
         all_records = automation.topics_sheet.get_all_records()
         topics = [
             {
@@ -283,8 +283,8 @@ def generate_script():
         return jsonify({'success': False, 'error': 'Topic and API key required'})
     
     try:
-        # Create temporary automation instance
-        automation = VideoAutomation()
+        # Create temporary automation instance, skip external setup
+        automation = VideoAutomation(skip_external_setup=True)
         # Ensure API key has proper prefix
         if not grok_api_key.startswith('xai-'):
             grok_api_key = f"xai-{grok_api_key}"
@@ -380,8 +380,8 @@ def run_video_generation_with_script(job_id, topic, api_keys, script_data, image
             'error': None
         }
         
-        # Create automation instance with custom API keys
-        automation = VideoAutomation()
+        # Create automation instance with custom API keys, skip external setup
+        automation = VideoAutomation(skip_external_setup=True)
         # Ensure API key has proper prefix
         grok_key = api_keys['grokApiKey']
         if not grok_key.startswith('xai-'):
@@ -521,7 +521,7 @@ def add_topic():
         return jsonify({'success': False, 'error': 'Topic is required'})
     
     try:
-        automation = VideoAutomation()
+        automation = VideoAutomation(skip_external_setup=False)  # Keep Sheets setup for adding topics
         # Find next ID
         records = automation.topics_sheet.get_all_records()
         next_id = f"{len(records) + 1:03d}"
@@ -677,7 +677,7 @@ def schedule_video():
         return jsonify({'success': False, 'error': 'Topic and scheduled time are required'})
     
     try:
-        automation = VideoAutomation()
+        automation = VideoAutomation(skip_external_setup=False)  # Keep Sheets setup for scheduling
         
         # Check if we have a "Scheduled" worksheet, if not create it
         try:
@@ -715,7 +715,7 @@ def schedule_video():
 def get_scheduled_videos():
     """Get all scheduled videos"""
     try:
-        automation = VideoAutomation()
+        automation = VideoAutomation(skip_external_setup=False)  # Keep Sheets setup for getting scheduled videos
         
         try:
             scheduled_sheet = automation.spreadsheet.worksheet('Scheduled')
@@ -751,7 +751,7 @@ def get_scheduled_videos():
 def cancel_scheduled_video(video_id):
     """Cancel a scheduled video"""
     try:
-        automation = VideoAutomation()
+        automation = VideoAutomation(skip_external_setup=False)  # Keep Sheets setup for canceling scheduled videos
         scheduled_sheet = automation.spreadsheet.worksheet('Scheduled')
         
         # Find the row with this ID
@@ -771,7 +771,7 @@ def cancel_scheduled_video(video_id):
 def clear_cancelled_videos():
     """Remove all cancelled videos from the schedule"""
     try:
-        automation = VideoAutomation()
+        automation = VideoAutomation(skip_external_setup=False)  # Keep Sheets setup for clearing cancelled videos
         scheduled_sheet = automation.spreadsheet.worksheet('Scheduled')
         
         # Get all values

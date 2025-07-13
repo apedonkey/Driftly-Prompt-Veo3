@@ -115,11 +115,33 @@ Be specific and detailed in your description."""
             logger.error(f"Failed to analyze images with Grok 2: {e}")
             return ""
     
-    def __init__(self):
-        self.setup_google_sheets()
-        self.setup_youtube()
+    def __init__(self, skip_external_setup=False):
+        # Allow skipping external service setup for web UI usage
+        if not skip_external_setup:
+            try:
+                self.setup_google_sheets()
+            except Exception as e:
+                logger.warning(f"Google Sheets setup failed: {e}")
+                self.gc = None
+                self.spreadsheet = None
+                self.topics_sheet = None
+                self.videos_sheet = None
+            
+            try:
+                self.setup_youtube()
+            except Exception as e:
+                logger.warning(f"YouTube setup failed: {e}")
+                self.youtube = None
+        else:
+            # Initialize as None when skipping setup
+            self.gc = None
+            self.spreadsheet = None
+            self.topics_sheet = None
+            self.videos_sheet = None
+            self.youtube = None
+            
         self.grok_api_key = os.getenv('GROK_API_KEY')
-        self.grok_api_url = os.getenv('GROK_API_URL')
+        self.grok_api_url = os.getenv('GROK_API_URL', 'https://api.x.ai/v1/chat/completions')
         self.fal_api_key = os.getenv('FAL_API_KEY')
         self.prompt_optimizer = PromptOptimizer()
         
