@@ -72,19 +72,19 @@ def run_video_generation(job_id, topic, api_keys_from_session, image_paths=None,
         # Create automation instance with custom API keys
         automation = VideoAutomation()
         # Ensure API key has proper prefix
-        grok_key = api_keys['grokApiKey']
+        grok_key = api_keys_from_session['grokApiKey']
         if not grok_key.startswith('xai-'):
             grok_key = f"xai-{grok_key}"
         automation.grok_api_key = grok_key
-        os.environ['FAL_KEY'] = api_keys['falApiKey']
+        os.environ['FAL_KEY'] = api_keys_from_session['falApiKey']
         
         # Handle YouTube credentials if provided
-        if api_keys.get('useYoutube') and api_keys.get('youtubeClientSecrets'):
+        if api_keys_from_session.get('useYoutube') and api_keys_from_session.get('youtubeClientSecrets'):
             try:
                 # Save YouTube credentials temporarily
                 os.makedirs('config', exist_ok=True)
                 with open('config/youtube_client_secrets.json', 'w') as f:
-                    f.write(api_keys['youtubeClientSecrets'])
+                    f.write(api_keys_from_session['youtubeClientSecrets'])
                 # Re-setup YouTube with new credentials
                 automation.setup_youtube()
             except Exception as e:
@@ -486,7 +486,9 @@ def generate_video():
     job_id = f"job_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     
     # Start background thread
-    thread = threading.Thread(target=run_video_generation, args=(job_id, topic, api_keys, image_path, duration))
+    # Convert single image_path to list format expected by run_video_generation
+    image_paths = [image_path] if image_path else None
+    thread = threading.Thread(target=run_video_generation, args=(job_id, topic, api_keys, image_paths, duration))
     thread.start()
     
     return jsonify({'success': True, 'job_id': job_id})

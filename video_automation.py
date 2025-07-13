@@ -580,6 +580,11 @@ Be specific and detailed in your description."""
         
         # Download video - check for different possible keys
         video_url = result.get('video', {}).get('url') or result.get('url') or result.get('video_url')
+        
+        if not video_url:
+            logger.error(f"No video URL found in Veo3 result. Result structure: {result}")
+            raise ValueError("Failed to generate video: No video URL returned from Veo3 API")
+        
         video_path = f"output/video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
         
         response = requests.get(video_url)
